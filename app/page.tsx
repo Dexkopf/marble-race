@@ -18,6 +18,7 @@ export default function SetupPage() {
   const [input, setInput] = useState("");
   const [shake, setShake] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const { t } = useLanguage();
@@ -257,10 +258,62 @@ export default function SetupPage() {
         ))}
       </div>
 
+      {/* Mobile legend — shown below xl */}
+      <div className="mt-4 w-full max-w-md xl:hidden">
+        <button
+          onClick={() => setShowLegend(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all"
+          style={{
+            background: "rgba(8,8,18,0.85)",
+            border: "1px solid rgba(124,58,237,0.18)",
+            backdropFilter: "blur(14px)",
+          }}
+        >
+          <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: "#7c3aed" }}>
+            {t.howToPlay}
+          </span>
+          <ChevronRight
+            className="w-3.5 h-3.5 transition-transform"
+            style={{ color: "#7c3aed", transform: showLegend ? "rotate(90deg)" : "none" }}
+          />
+        </button>
+
+        {showLegend && (
+          <div
+            className="mt-1 rounded-xl p-4"
+            style={{
+              background: "rgba(8,8,18,0.92)",
+              border: "1px solid rgba(124,58,237,0.18)",
+              backdropFilter: "blur(14px)",
+            }}
+          >
+            <div className="grid grid-cols-2 gap-x-4">
+              <LegendRow icon={<WindIcon />} label={t.wind} desc={t.windDesc} />
+              <LegendRow icon={<PegIcon />} label={t.pegs} desc={t.pegsDesc} />
+              <LegendRow icon={<RailIcon />} label={t.rails} desc={t.railsDesc} />
+              <LegendRow icon={<URampIcon />} label={t.uRamps} desc={t.uRampsDesc} />
+              <LegendRow icon={<PlatformIcon />} label={t.platforms} desc={t.platformsDesc} />
+              <LegendRow icon={<StuckIcon />} label={t.stuckKick} desc={t.stuckKickDesc} />
+            </div>
+
+            <div className="my-3" style={{ height: "1px", background: "rgba(124,58,237,0.14)" }} />
+
+            <p className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: "#7c3aed" }}>
+              {t.launchPads}
+            </p>
+            <div className="grid grid-cols-3 gap-x-4">
+              <LegendRow icon={<PadIcon color="#16a34a" arrowDir="right" />} label={t.greenPad} desc={t.greenPadDesc} />
+              <LegendRow icon={<PadIcon color="#b45309" arrowDir="left" />} label={t.orangePad} desc={t.orangePadDesc} />
+              <LegendRow icon={<PadIcon color="#be123c" arrowDir="up" />} label={t.redPad} desc={t.redPadDesc} />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Legend panel — fixed right side */}
       <aside
         className="fixed right-4 top-1/2 -translate-y-1/2 hidden xl:flex flex-col pointer-events-none select-none"
-        style={{ width: "196px", zIndex: 10 }}
+        style={{ width: "248px", zIndex: 10 }}
       >
         <div
           className="rounded-2xl p-4"

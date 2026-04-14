@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useMapStore } from "@/store/mapStore";
 import {
@@ -9,9 +9,67 @@ import {
 } from "@/lib/trackBuilder";
 import { CANVAS_W, CANVAS_H } from "@/app/race/page";
 import { BgTheme, THEMES, getTheme } from "@/lib/themes";
-import { ArrowLeft, Save, Trash2, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, Trash2, RotateCcw, ChevronRight, Layers, X } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import LangToggle from "@/components/LangToggle";
+
+// ── Legend icons (mirrors app/page.tsx legend) ─────────────────────────────
+function PegIcon() {
+  return (
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+      <circle cx="7" cy="10" r="4.5" fill="#7c3aed" />
+      <circle cx="21" cy="10" r="4.5" fill="#7c3aed" />
+      <circle cx="5.8" cy="8.8" r="1.3" fill="rgba(255,255,255,0.5)" />
+      <circle cx="19.8" cy="8.8" r="1.3" fill="rgba(255,255,255,0.5)" />
+    </svg>
+  );
+}
+function RailIcon() {
+  return (
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+      <rect x="1" y="6" width="12" height="5" rx="2" transform="rotate(-13 1 6)" fill="#a78bfa" fillOpacity="0.85" />
+      <rect x="15" y="11" width="12" height="5" rx="2" transform="rotate(13 15 11)" fill="#a78bfa" fillOpacity="0.85" />
+    </svg>
+  );
+}
+function PlatformIcon() {
+  return (
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+      <rect x="2" y="8" width="24" height="5" rx="2.5" fill="#6d28d9" fillOpacity="0.9" />
+      <rect x="2" y="8" width="24" height="2" rx="1" fill="rgba(196,181,253,0.2)" />
+    </svg>
+  );
+}
+function URampIcon() {
+  return (
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+      <path d="M5 2 L5 13 Q14 19 23 13 L23 2" stroke="#c4b5fd" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+function PadIcon({ color, arrowDir }: { color: string; arrowDir: "left" | "right" | "up" }) {
+  const arrowMap: Record<string, React.ReactElement> = {
+    right: <polyline points="17,5 23,8 17,11" stroke="rgba(255,255,255,0.7)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
+    left:  <polyline points="11,5 5,8 11,11"  stroke="rgba(255,255,255,0.7)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
+    up:    <polyline points="9,9 14,3 19,9"   stroke="rgba(255,255,255,0.7)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
+  };
+  return (
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+      <rect x="2" y="12" width="24" height="5" rx="2.5" fill={color} fillOpacity="0.9" />
+      {arrowMap[arrowDir]}
+    </svg>
+  );
+}
+
+const PALETTE_ICONS = [
+  <PegIcon key="peg" />,
+  <RailIcon key="rail" />,
+  <PlatformIcon key="platform" />,
+  <URampIcon key="uramp" />,
+  <PadIcon key="pad-left"  color="#b45309" arrowDir="left" />,
+  <PadIcon key="pad-right" color="#16a34a" arrowDir="right" />,
+  <PadIcon key="pad-up"    color="#be123c" arrowDir="up" />,
+];
 
 // ── Palette item templates ──────────────────────────────────────────────────
 interface PaletteItem {
@@ -285,6 +343,7 @@ export default function EditorPage() {
   const [activePanel, setActivePanel] = useState<"editor" | "maps">("editor");
 
   const [stampItem, setStampItem] = useState<PaletteItem | null>(null);
+  const [showPanel, setShowPanel] = useState(false);
   const [bgTheme,   setBgTheme]   = useState<BgTheme>(() => getTheme(activeThemeId));
 
   // Drag state
@@ -327,7 +386,7 @@ export default function EditorPage() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     drawCanvas(canvas, obstacles, selectedIdx, ghostObs ? { obs: ghostObs, x: 0, y: 0 } : null, bgTheme);
-  }, [obstacles, selectedIdx, ghostObs, bgTheme]);
+  }, [obstacles, selectedIdx, ghostObs, bgTheme, canvasPhysSize]);
 
   // Keyboard: Escape cancels stamp mode, Delete removes selected obstacle
   useEffect(() => {
@@ -509,10 +568,14 @@ export default function EditorPage() {
 
   // ── Save map ─────────────────────────────────────────────────────────────
   function handleSave() {
+    // Copy from the live canvas so the thumbnail always matches what the user sees,
+    // regardless of any theme state timing issues.
+    const src = canvasRef.current!;
     const thumb = document.createElement("canvas");
     thumb.width  = Math.round(CANVAS_W / 4);
     thumb.height = Math.round(CANVAS_H / 4);
-    drawCanvas(thumb, obstacles, null, null, bgTheme);
+    const tctx = thumb.getContext("2d")!;
+    tctx.drawImage(src, 0, 0, src.width, src.height, 0, 0, thumb.width, thumb.height);
     const thumbnail = thumb.toDataURL("image/png");
 
     const mapData = { name: mapName.trim() || "My Map", obstacles, thumbnail };
@@ -569,7 +632,7 @@ export default function EditorPage() {
           style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           <ArrowLeft className="w-3.5 h-3.5" /> {t.back}
         </button>
-        <h1 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 22, letterSpacing: "0.12em", color: "#c4b5fd" }}>
+        <h1 className="hidden md:block" style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 22, letterSpacing: "0.12em", color: "#c4b5fd" }}>
           {t.mapEditor}
         </h1>
         <div className="flex items-center gap-2">
@@ -648,11 +711,71 @@ export default function EditorPage() {
             {t.controlsHint.split("\n")[0]}<br />
             {t.controlsHint.split("\n")[1]}
           </div>
+
+          {/* Mobile delete FAB — shown when an obstacle is selected */}
+          {selectedIdx !== null && (
+            <button
+              className="md:hidden absolute bottom-20 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center"
+              onClick={deleteSelected}
+              style={{
+                background: "rgba(244,63,94,0.85)",
+                border: "1px solid rgba(244,63,94,0.6)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+              }}
+            >
+              <Trash2 className="w-5 h-5 text-white" />
+            </button>
+          )}
+
+          {/* Mobile panel toggle FAB */}
+          <button
+            className="md:hidden absolute bottom-4 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center"
+            onClick={() => setShowPanel(v => !v)}
+            style={{
+              background: showPanel ? "rgba(124,58,237,0.9)" : "rgba(124,58,237,0.75)",
+              border: "1px solid rgba(124,58,237,0.6)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+            }}
+          >
+            {showPanel
+              ? <X className="w-5 h-5 text-white" />
+              : <Layers className="w-5 h-5 text-white" />
+            }
+          </button>
         </div>
 
-        {/* Right panel */}
-        <div className="flex-shrink-0 flex flex-col overflow-hidden"
+        {/* Mobile backdrop */}
+        {showPanel && (
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-black/60"
+            onClick={() => setShowPanel(false)}
+          />
+        )}
+
+        {/* Right panel — fixed overlay on mobile, inline on md+ */}
+        <div className={[
+          "flex-shrink-0 flex flex-col overflow-hidden",
+          "fixed right-0 top-0 bottom-0 z-40 transition-transform duration-300",
+          "md:relative md:top-auto md:right-auto md:bottom-auto md:z-auto md:translate-x-0",
+          showPanel ? "translate-x-0" : "translate-x-full md:translate-x-0",
+        ].join(" ")}
           style={{ width: 220, background: "rgba(10,10,15,0.98)", borderLeft: "1px solid rgba(124,58,237,0.15)" }}>
+
+          {/* Panel collapse button — mobile only */}
+          <div className="md:hidden flex justify-end px-3 pt-2.5 pb-1 flex-shrink-0">
+            <button
+              onClick={() => setShowPanel(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all active:scale-95"
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "#64748b",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              <X className="w-3 h-3" /> Collapse
+            </button>
+          </div>
 
           {/* Panel tabs */}
           <div className="flex border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
@@ -720,8 +843,9 @@ export default function EditorPage() {
                     boxShadow: isStamping ? `0 0 10px ${item.color}33` : "none",
                   }}
                 >
-                  <div className="w-3 h-3 rounded-full flex-shrink-0 transition-all"
-                    style={{ background: item.color, boxShadow: `0 0 ${isStamping ? 10 : 6}px ${item.color}${isStamping ? "cc" : "88"}` }} />
+                  <div className="flex-shrink-0 flex items-center justify-center" style={{ opacity: isStamping ? 1 : 0.75, filter: isStamping ? `drop-shadow(0 0 4px ${item.color}aa)` : "none" }}>
+                    {PALETTE_ICONS[i]}
+                  </div>
                   <div className="flex-1">
                     <div className="text-sm" style={{ color: isStamping ? "#f1f5f9" : "#e2e8f0" }}>{palLabels[i]}</div>
                     <div className="text-xs" style={{ color: "#374151" }}>{palDescs[i]}</div>

@@ -12,7 +12,7 @@ import { useAudio } from "@/hooks/useAudio";
 import { buildTrack, ObstacleDef } from "@/lib/trackBuilder";
 import LiveSidebar from "@/components/LiveSidebar";
 import WinnerModal from "@/components/WinnerModal";
-import { ArrowLeft, Shuffle, Play, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Shuffle, Play, Volume2, VolumeX, Medal } from "lucide-react";
 
 export const CANVAS_W = 520;
 export const CANVAS_H = 925;
@@ -228,6 +228,7 @@ export default function RacePage() {
   const { t } = useLanguage();
 
   const [showModal, setShowModal]        = useState(false);
+  const [showSidebar, setShowSidebar]    = useState(false);
   const [countdownDisplay, setCountdown] = useState<number | string>(3);
   const [canvasStyle, setCanvasStyle]    = useState<React.CSSProperties>({});
   const [canvasPhysSize, setCanvasPhysSize] = useState({ w: CANVAS_W, h: CANVAS_H });
@@ -398,7 +399,7 @@ export default function RacePage() {
           <ArrowLeft className="w-3.5 h-3.5" />
           {t.setupBack}
         </button>
-        <h1 className="font-display text-2xl tracking-widest" style={{ color: "#c4b5fd" }}>
+        <h1 className="hidden md:block font-display text-2xl tracking-widest" style={{ color: "#c4b5fd" }}>
           {t.marbleRace}
         </h1>
         <div className="flex items-center gap-3">
@@ -455,10 +456,10 @@ export default function RacePage() {
                   onClick={handleShuffle}
                   className="flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs tracking-widest uppercase transition-all active:scale-95 hover:scale-105"
                   style={{
-                    background: "rgba(124,58,237,0.14)",
-                    border: "1px solid rgba(124,58,237,0.4)",
-                    color: "#c4b5fd",
-                    boxShadow: "0 0 18px rgba(124,58,237,0.12)",
+                    background: "#5b21b6",
+                    border: "1px solid rgba(124,58,237,0.6)",
+                    color: "#f5f3ff",
+                    boxShadow: "0 0 18px rgba(124,58,237,0.25)",
                   }}
                 >
                   <Shuffle
@@ -553,9 +554,38 @@ export default function RacePage() {
           )}
         </div>
 
-        <div className="w-52 flex-shrink-0 overflow-hidden" style={{ minWidth: "200px", maxWidth: "220px" }}>
+        {/* Mobile backdrop */}
+        {showSidebar && (
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-black/60"
+            onClick={() => setShowSidebar(false)}
+          />
+        )}
+
+        {/* Rankings sidebar — fixed overlay on mobile, inline on md+ */}
+        <div className={[
+          "overflow-hidden flex-shrink-0",
+          "fixed right-0 top-0 bottom-0 w-64 z-40 transition-transform duration-300",
+          "md:relative md:top-auto md:right-auto md:bottom-auto md:w-52 md:z-auto md:translate-x-0",
+          showSidebar ? "translate-x-0" : "translate-x-full md:translate-x-0",
+        ].join(" ")}
+          style={{ maxWidth: 220 }}
+        >
           <LiveSidebar rankings={rankings} status={raceStatus} raceStartTime={raceStartTime} />
         </div>
+
+        {/* Mobile rankings toggle FAB */}
+        <button
+          className="md:hidden fixed bottom-6 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center"
+          onClick={() => setShowSidebar(v => !v)}
+          style={{
+            background: raceStatus === "racing" ? "rgba(16,185,129,0.85)" : "rgba(124,58,237,0.85)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          }}
+        >
+          <Medal className="w-5 h-5 text-white" />
+        </button>
       </div>
       {showModal && winner && (
         <WinnerModal winner={winner} onClose={() => setShowModal(false)} subtitle={t.winnerLabel} resultsLabel={t.results} watchLabel={t.watch} />
