@@ -532,4 +532,8 @@ export function useAudio() {
     stopMusic,
     isMusicPlaying,
     getMuted,
-  
+    getVolume,
+    setMuted,
+    setMusicVolume,
+  };
+}

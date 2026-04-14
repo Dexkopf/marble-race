@@ -292,4 +292,13 @@ export function simulateStraightDrop(
       }
     }
     const sorted = [...blocked].sort((a, b) => a[0] - b[0]);
-    let edge
+    let edge = sorted[0][1], hasPath = false;
+    for (const [start, end] of sorted.slice(1)) {
+      if (start - edge >= MARBLE_RADIUS * 2.5) { hasPath = true; break; }
+      edge = Math.max(edge, end);
+    }
+    if (!hasPath && playRight - edge >= MARBLE_RADIUS * 2.5) hasPath = true;
+    if (!hasPath) return { reachesFinish: false, blockedAt: y };
+  }
+  return { reachesFinish: true };
+}

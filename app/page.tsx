@@ -430,4 +430,3 @@ function PadIcon({ color, arrowDir }: { color: string; arrowDir: "left" | "right
     </svg>
   );
 }
-                                                                                        

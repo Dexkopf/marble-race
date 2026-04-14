@@ -115,4 +115,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
   updateThumbnail: (id, thumbnail) => {
     const maps = get().customMaps.map(m => m.id === id ? { ...m, thumbnail } : m);
     saveMaps(maps);
- 
+    set({ customMaps: maps });
+  },
+}));

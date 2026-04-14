@@ -20,8 +20,3 @@ tsconfig.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Local fix scripts (one-off tooling, not part of the project)
-fix_draw_order.py
-fix_race_page.py
-fix_walls_order.py
