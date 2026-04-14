@@ -15,8 +15,7 @@ import LiveSidebar from "@/components/LiveSidebar";
 import WinnerModal from "@/components/WinnerModal";
 import { ArrowLeft, Shuffle, Play, Volume2, VolumeX, Trophy, Flag } from "lucide-react";
 
-export const CANVAS_W = 520;
-export const CANVAS_H = 925;
+import { CANVAS_W, CANVAS_H } from "@/lib/constants";
 const WALL_THICK = 24;
 const MARBLE_R   = 6;
 const SPAWN_Y    = 36;

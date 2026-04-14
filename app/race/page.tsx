@@ -13,9 +13,9 @@ import { buildTrack, ObstacleDef } from "@/lib/trackBuilder";
 import LiveSidebar from "@/components/LiveSidebar";
 import WinnerModal from "@/components/WinnerModal";
 import { ArrowLeft, Shuffle, Play, Volume2, VolumeX, Medal } from "lucide-react";
+import { CANVAS_W, CANVAS_H } from "@/lib/constants";
 
-export const CANVAS_W = 520;
-export const CANVAS_H = 925;
+export { CANVAS_W, CANVAS_H };
 
 
 const WALL_THICK = 24;

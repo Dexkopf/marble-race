@@ -7,7 +7,7 @@ import {
   ObstacleDef, PegDef, LineDef, URampDef, PlatDef, PadDef,
   MARBLE_RADIUS, WALL_THICK, PAD_COLOR,
 } from "@/lib/trackBuilder";
-import { CANVAS_W, CANVAS_H } from "@/app/race/page";
+import { CANVAS_W, CANVAS_H } from "@/lib/constants";
 import { BgTheme, THEMES, getTheme } from "@/lib/themes";
 import { ArrowLeft, Save, Trash2, RotateCcw, ChevronRight, Layers, X } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";

@@ -9,7 +9,7 @@ import {
   PadDef,
   ObstacleDef,
 } from "@/lib/trackBuilder";
-import { CANVAS_W, CANVAS_H } from "@/app/race/page";
+import { CANVAS_W, CANVAS_H } from "@/lib/constants";
 import { BgTheme } from "@/lib/themes";
 
 export interface GameEngineCallbacks {
