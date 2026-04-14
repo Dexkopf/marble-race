@@ -15,8 +15,6 @@ import WinnerModal from "@/components/WinnerModal";
 import { ArrowLeft, Shuffle, Play, Volume2, VolumeX, Medal } from "lucide-react";
 import { CANVAS_W, CANVAS_H } from "@/lib/constants";
 
-export { CANVAS_W, CANVAS_H };
-
 
 const WALL_THICK = 24;
 const MARBLE_R   = 6;
